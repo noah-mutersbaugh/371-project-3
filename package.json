@@ -1,0 +1,22 @@
+{
+  "name": "project3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.ts",
+  "scripts": {
+    "start": "tsc && node dist/main.js",
+    "dev": "parcel src/index.html",
+    "build": "parcel build src/index.html"
+  },
+  "author": "Noah Mutersbaugh",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "highcharts": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/jquery": "^3.5.5",
+    "parcel": "^2.0.0-beta.1",
+    "typescript": "^4.2.3"
+  }
+}
