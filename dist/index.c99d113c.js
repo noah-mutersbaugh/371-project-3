@@ -445,164 +445,43 @@ id) /*: string*/
 var _axios = require("axios");
 var _parcelHelpers = require("@parcel/transformer-js/lib/esmodule-helpers.js");
 var _axiosDefault = _parcelHelpers.interopDefault(_axios);
+let tableBody = document.querySelector("#progOutput table > tbody");
 const cryptoSymbolURL = "https://api.sandbox.gemini.com/v1/symbols";
 _axiosDefault.default.get(cryptoSymbolURL).then(r => {
   let dataArr = [];
   dataArr.push(r.data);
-  return dataArr;
+  return dataArr[0];
 }).then(symbol => {
-  let symbolButton;
-  let userInput = document.querySelector("#userInput");
-  let buttonContainer = document.createElement("div");
-  let buttonsOptionsContainer = document.createElement("div");
-  buttonContainer.setAttribute("id", "wrapper");
-  buttonContainer.setAttribute("class", "btn-group-vertical btn-group-toggle");
-  buttonContainer.setAttribute("role", "group");
-  buttonContainer.setAttribute("aria-label", "Basic checkbox toggle button group");
-  buttonsOptionsContainer.setAttribute("id", "buttonsOptions");
-  buttonsOptionsContainer.setAttribute("class", "collapse hide-me");
-  buttonsOptionsContainer.appendChild(buttonContainer);
-  userInput?.appendChild?.(buttonsOptionsContainer);
-  symbol[0].forEach(coin => {
-    if (coin.match(/(usd)/g)) {
-      symbolButton = document.createElement("button");
-      symbolButton.setAttribute("id", coin);
-      symbolButton.setAttribute("class", "btn btn-outline-success");
-      symbolButton.setAttribute("type", "button");
-      symbolButton.setAttribute("data-toggle", "button");
-      symbolButton.setAttribute("autocomplete", "off");
-      symbolButton.textContent = coin;
-      buttonContainer?.appendChild?.(symbolButton);
-    }
-  });
+  createButtons(symbol);
   return symbol;
 }).then(symbol => {
   const wrapper = document.getElementById("wrapper");
   wrapper?.addEventListener?.("click", event => {
     const {target} = event;
-    let exists = false;
+    // if we're on the button, not somewhere else in the div
     if (target.id != undefined) {
-      document.querySelectorAll("tbody tr td:first-child").forEach(e => {
-        if (target.innerText == e.innerText.toLowerCase()) {
-          exists = true;
-          document?.querySelector?.("h5")?.remove?.();
-          let header = document?.getElementById?.("pageTitle");
-          let errorMessage = document.createElement("h5");
-          let errorMessageText = document.createTextNode(e.innerText + " is already on the table.");
-          errorMessage.appendChild(errorMessageText);
-          header?.appendChild?.(errorMessage);
-          setTimeout(() => {
-            errorMessage.remove();
-          }, 3000);
-          return;
-        }
-      });
-      if (!exists) {
-        const baseURL = "https://api.sandbox.gemini.com/v2/ticker/";
-        let cryptoURL = baseURL + target.id;
-        _axiosDefault.default.get(cryptoURL).then(r => {
-          let dataArr = [];
-          dataArr.push(r.data);
-          return dataArr;
-        }).then(coins => {
-          const coinsArr = coins.map(c => {
-            return {
-              name: c.symbol,
-              open: c.open,
-              high: c.high,
-              low: c.low,
-              close: c.close
-            };
-          });
-          return coinsArr;
-        }).then(coinDetails => {
-          if (coinDetails[0].close != "0") {
-            let tableBody = document.querySelector("#progOutput table > tbody");
-            if (tableBody?.children?.[0] == undefined) {
-              let table = document.querySelector("table");
-              let thead = document.createElement("thead");
-              let tr = document.createElement("tr");
-              let th = document.createElement("th");
-              let thText = document.createTextNode("Symbol");
-              th.appendChild(thText);
-              tr.appendChild(th);
-              th = document.createElement("th");
-              thText = document.createTextNode("Open");
-              th.appendChild(thText);
-              tr.appendChild(th);
-              th = document.createElement("th");
-              thText = document.createTextNode("High");
-              th.appendChild(thText);
-              tr.appendChild(th);
-              th = document.createElement("th");
-              thText = document.createTextNode("Low");
-              th.appendChild(thText);
-              tr.appendChild(th);
-              th = document.createElement("th");
-              thText = document.createTextNode("Close");
-              th.appendChild(thText);
-              tr.appendChild(th);
-              thead.appendChild(tr);
-              table?.appendChild?.(thead);
-            }
-            coinDetails.forEach(coin => {
-              // only the code to create the images are shown below
-              // you should be able to figure out the missing code to
-              // insert the image into a table cell
-              const cryptoName = document.createElement("span");
-              const cryptoNameText = document.createTextNode(coin.name);
-              cryptoName.appendChild(cryptoNameText);
-              const cryptoOpen = document.createElement("span");
-              const cryptoOpenText = document.createTextNode("$" + coin.open);
-              cryptoOpen.appendChild(cryptoOpenText);
-              const cryptoHigh = document.createElement("span");
-              const cryptoHighText = document.createTextNode("$" + coin.high);
-              cryptoHigh.appendChild(cryptoHighText);
-              const cryptoLow = document.createElement("span");
-              const cryptoLowText = document.createTextNode("$" + coin.low);
-              cryptoLow.appendChild(cryptoLowText);
-              const cryptoClose = document.createElement("span");
-              const cryptoCloseText = document.createTextNode("$" + coin.close);
-              cryptoClose.appendChild(cryptoCloseText);
-              let tr = document.createElement("tr");
-              let td = document.createElement("td");
-              td.appendChild(cryptoName);
-              tr.appendChild(td);
-              td = document.createElement("td");
-              td.appendChild(cryptoOpen);
-              tr.appendChild(td);
-              td = document.createElement("td");
-              td.appendChild(cryptoHigh);
-              tr.appendChild(td);
-              td = document.createElement("td");
-              td.appendChild(cryptoLow);
-              tr.appendChild(td);
-              td = document.createElement("td");
-              td.appendChild(cryptoClose);
-              tr.appendChild(td);
-              tableBody?.appendChild?.(tr);
-            });
-            document.getElementById(coinDetails[0].name.toLowerCase())?.setAttribute?.("class", "btn btn-outline-success active");
-            document.getElementById(coinDetails[0].name.toLowerCase())?.setAttribute?.("data-toggle", "");
-          } else {
-            document?.querySelector?.("h5")?.remove?.();
-            let header = document?.getElementById?.("pageTitle");
-            let errorMessage = document.createElement("h5");
-            let errorMessageText = document.createTextNode("There is no information for " + coinDetails[0].name + " at this time.");
-            errorMessage.appendChild(errorMessageText);
-            header?.appendChild?.(errorMessage);
-            document.getElementById(coinDetails[0].name.toLowerCase())?.setAttribute?.("class", "btn btn-outline-danger active");
-            document.getElementById(coinDetails[0].name.toLowerCase())?.setAttribute?.("data-toggle", "");
-            setTimeout(() => {
-              errorMessage.remove();
-            }, 3000);
-          }
-        });
+      let tableElement = document.querySelector("tbody tr#" + target.id + "TableElement");
+      // if the element doesn't exist yet
+      if (tableElement == null && !target.classList.contains("btn-outline-danger")) {
+        generateTableElement(target);
       } else {
-        return;
+        // if the element DOES exist
+        // remove the element
+        document.querySelector("tbody tr#" + target.id + "TableElement")?.remove?.();
+        // And if there are no items in the table, remove the thead
+        if (document.querySelector("tbody")?.children?.length == 0) {
+          document.querySelector("thead")?.remove?.();
+        }
       }
     }
   });
+});
+// listener for clearAllButton
+document.getElementById("clearAllButton")?.addEventListener?.("click", event => {
+  removeAllChildNodes(document.querySelector("#progOutput table tbody"));
+  document.querySelector("h5")?.remove?.();
+  document.querySelector("thead")?.remove?.();
+  setGreenButtonsClear(Array.from(document.querySelectorAll("#wrapper button")));
 });
 function removeAllChildNodes(parent) {
   while (parent.firstChild) {
@@ -616,12 +495,146 @@ function setGreenButtonsClear(buttonArray) {
     }
   });
 }
-document.getElementById("clearAllButton")?.addEventListener?.("click", event => {
-  removeAllChildNodes(document.querySelector("#progOutput table tbody"));
-  document.querySelector("h5")?.remove?.();
-  document.querySelector("thead")?.remove?.();
-  setGreenButtonsClear(Array.from(document.querySelectorAll("#wrapper button")));
-});
+function createTableElement(coinInfo) {
+  // only the code to create the images are shown below
+  // you should be able to figure out the missing code to
+  // insert the image into a table cell
+  const cryptoName = document.createElement("span");
+  const cryptoNameText = document.createTextNode(coinInfo.name);
+  cryptoName.appendChild(cryptoNameText);
+  const cryptoOpen = document.createElement("span");
+  const cryptoOpenText = document.createTextNode("$" + coinInfo.open);
+  cryptoOpen.appendChild(cryptoOpenText);
+  const cryptoHigh = document.createElement("span");
+  const cryptoHighText = document.createTextNode("$" + coinInfo.high);
+  cryptoHigh.appendChild(cryptoHighText);
+  const cryptoLow = document.createElement("span");
+  const cryptoLowText = document.createTextNode("$" + coinInfo.low);
+  cryptoLow.appendChild(cryptoLowText);
+  const cryptoClose = document.createElement("span");
+  const cryptoCloseText = document.createTextNode("$" + coinInfo.close);
+  cryptoClose.appendChild(cryptoCloseText);
+  let tr = document.createElement("tr");
+  let td = document.createElement("td");
+  td.appendChild(cryptoName);
+  tr.appendChild(td);
+  td = document.createElement("td");
+  td.appendChild(cryptoOpen);
+  tr.appendChild(td);
+  td = document.createElement("td");
+  td.appendChild(cryptoHigh);
+  tr.appendChild(td);
+  td = document.createElement("td");
+  td.appendChild(cryptoLow);
+  tr.appendChild(td);
+  td = document.createElement("td");
+  td.appendChild(cryptoClose);
+  tr.appendChild(td);
+  tr.setAttribute("id", coinInfo.name.toLowerCase() + "TableElement");
+  tableBody?.appendChild?.(tr);
+}
+function createTableHead() {
+  let table = document.querySelector("table");
+  let thead = document.createElement("thead");
+  let tr = document.createElement("tr");
+  let th = document.createElement("th");
+  let thText = document.createTextNode("Symbol");
+  th.appendChild(thText);
+  tr.appendChild(th);
+  th = document.createElement("th");
+  thText = document.createTextNode("Open");
+  th.appendChild(thText);
+  tr.appendChild(th);
+  th = document.createElement("th");
+  thText = document.createTextNode("High");
+  th.appendChild(thText);
+  tr.appendChild(th);
+  th = document.createElement("th");
+  thText = document.createTextNode("Low");
+  th.appendChild(thText);
+  tr.appendChild(th);
+  th = document.createElement("th");
+  thText = document.createTextNode("Close");
+  th.appendChild(thText);
+  tr.appendChild(th);
+  thead.appendChild(tr);
+  table?.appendChild?.(thead);
+}
+function createButtons(symbol) {
+  let symbolButton;
+  let userInput = document.querySelector("#userInput");
+  let buttonContainer = document.createElement("div");
+  let buttonsOptionsContainer = document.createElement("div");
+  buttonContainer.setAttribute("id", "wrapper");
+  buttonContainer.setAttribute("class", "btn-group-vertical btn-group-toggle");
+  buttonContainer.setAttribute("role", "group");
+  buttonContainer.setAttribute("aria-label", "Basic checkbox toggle button group");
+  buttonsOptionsContainer.setAttribute("id", "buttonsOptions");
+  buttonsOptionsContainer.setAttribute("class", "collapse hide-me");
+  buttonsOptionsContainer.appendChild(buttonContainer);
+  userInput?.appendChild?.(buttonsOptionsContainer);
+  symbol.forEach(coin => {
+    if (coin.match(/(usd)/g)) {
+      symbolButton = document.createElement("button");
+      symbolButton.setAttribute("id", coin);
+      symbolButton.setAttribute("class", "btn btn-outline-success");
+      symbolButton.setAttribute("type", "button");
+      symbolButton.setAttribute("data-toggle", "button");
+      symbolButton.setAttribute("autocomplete", "off");
+      symbolButton.textContent = coin;
+      buttonContainer?.appendChild?.(symbolButton);
+    }
+  });
+}
+function createErrorMessage(coinDetails) {
+  document?.querySelector?.("h5")?.remove?.();
+  let header = document?.getElementById?.("pageTitle");
+  let errorMessage = document.createElement("h5");
+  let errorMessageText = document.createTextNode("There is no information for " + coinDetails[0].name + " at this time.");
+  errorMessage.appendChild(errorMessageText);
+  header?.appendChild?.(errorMessage);
+  document.getElementById(coinDetails[0].name.toLowerCase())?.setAttribute?.("class", "btn btn-danger active");
+  document.getElementById(coinDetails[0].name.toLowerCase())?.removeAttribute?.("data-toggle");
+  document.getElementById(coinDetails[0].name.toLowerCase())?.setAttribute?.("disabled", "");
+  setTimeout(() => {
+    errorMessage.remove();
+  }, 3000);
+}
+function generateTableElement(target) {
+  const baseURL = "https://api.sandbox.gemini.com/v2/ticker/";
+  let cryptoURL = baseURL + target.id;
+  _axiosDefault.default.get(cryptoURL).then(r => {
+    let dataArr = [];
+    dataArr.push(r.data);
+    return dataArr;
+  }).then(coins => {
+    const coinsArr = coins.map(c => {
+      return {
+        name: c.symbol,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close
+      };
+    });
+    return coinsArr;
+  }).then(coinDetails => {
+    if (coinDetails[0].close != "0") {
+      // if there's information for this coin
+      if (// if there's nothing in the table at all, make a thead
+      tableBody?.children?.[0] == undefined && document.querySelector("thead tr")?.children?.[0] == undefined) {
+        createTableHead();
+      }
+      coinDetails.forEach(coin => {
+        createTableElement(coin);
+      });
+      document.getElementById(coinDetails[0].name.toLowerCase())?.setAttribute?.("class", "btn btn-outline-success active");
+    } else {
+      // create a new error message
+      createErrorMessage(coinDetails);
+    }
+  });
+}
 
 },{"axios":"7rA65","@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y"}],"7rA65":[function(require,module,exports) {
 module.exports = require('./lib/axios');
