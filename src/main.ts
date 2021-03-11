@@ -1,9 +1,5 @@
 import axios, { AxiosResponse } from "axios";
 
-interface coinSymbol {
-  symbol: string;
-}
-
 interface Coin {
   name: string;
   open: string;
@@ -12,10 +8,21 @@ interface Coin {
   close: string;
 }
 
-let tableBody: HTMLTableSectionElement | null = document.querySelector(
-  "#progOutput table > tbody"
-);
+interface Volume {
+  name: string;
+  quantity: string;
+  price: string;
+}
 
+let tableBody: HTMLElement | null;
+
+let tabContentWrapper: HTMLElement = document.createElement("div");
+tabContentWrapper.setAttribute("id", "tabContentWrapper");
+tabContentWrapper.setAttribute("class", "tab-content");
+
+/*
+  Get possible crypto currencies available, and turn them into options
+*/
 const cryptoSymbolURL = "https://api.sandbox.gemini.com/v1/symbols";
 axios
   .get(cryptoSymbolURL)
@@ -25,19 +32,76 @@ axios
     return dataArr[0];
   })
   .then((symbol: string[]) => {
-    createButtons(symbol);
+    let buttonWrapper: HTMLElement = document.createElement("div");
+    buttonWrapper.setAttribute("id", "cryptoButtonWrapper");
+    createButtons(symbol, buttonWrapper, "crypto");
+
+    buttonWrapper = document.createElement("div");
+    buttonWrapper.setAttribute("id", "volumeButtonWrapper");
+    buttonWrapper.style.display = "none";
+    createButtons(symbol, buttonWrapper, "volume");
+
     return symbol;
   })
   .then((symbol: any[]) => {
-    const wrapper: HTMLElement | null = document.getElementById("wrapper");
-
-    wrapper?.addEventListener("click", (event: Event) => {
+    const cryptoButtonWrapper: HTMLElement | null = document.getElementById(
+      "cryptoButtonWrapper"
+    );
+    cryptoButtonWrapper?.addEventListener("click", (event: Event) => {
       const { target } = event;
 
       // if we're on the button, not somewhere else in the div
       if ((target as HTMLButtonElement).id != undefined) {
         let tableElement = document.querySelector(
-          "tbody tr#" + (target as HTMLButtonElement).id + "TableElement"
+          `#CryptoValues tbody tr#${(target as HTMLButtonElement).id.replace(
+            /-crypto/g,
+            ""
+          )}TableElement`
+        );
+      
+        // if the element doesn't exist yet
+        if (
+          tableElement == null &&
+          !(target as HTMLButtonElement).classList.contains(
+            "btn-outline-danger"
+          )
+        ) {
+          console.log("generatetableel");
+          generateTableElement(target);
+        } else {
+          // if the element DOES exist
+          //remove the element
+          document
+            .querySelector(
+              `#CryptoValues tbody tr#${(target as HTMLButtonElement).id.replace(
+                /-crypto/g,
+                ""
+              )}TableElement`
+            )
+            ?.remove();
+
+          // And if there are no items in the table, remove the thead
+          if (document.querySelector("#CryptoValues tbody")?.children.length == 0) {
+            Array.from(document.querySelectorAll("#progOutput h2")).filter(e => e.innerHTML == "Crypto Values")[0].remove();
+            document.querySelector("#CryptoValues")?.remove();
+          }
+        }
+      }
+    });
+
+    const volumeButtonWrapper: HTMLElement | null = document.getElementById(
+      "volumeButtonWrapper"
+    );
+    volumeButtonWrapper?.addEventListener("click", (event: Event) => {
+      const { target } = event;
+
+      // if we're on the button, not somewhere else in the div
+      if ((target as HTMLButtonElement).id != undefined) {
+        let tableElement = document.querySelector(
+          `#VolumeValues tbody tr#${(target as HTMLButtonElement).id.replace(
+            /usd-volume/g,
+            ""
+          )}TableElement`
         );
 
         // if the element doesn't exist yet
@@ -53,13 +117,17 @@ axios
           //remove the element
           document
             .querySelector(
-              "tbody tr#" + (target as HTMLButtonElement).id + "TableElement"
+              `#VolumeValues tbody tr#${(target as HTMLButtonElement).id.replace(
+                /usd-volume/g,
+                ""
+              )}TableElement`
             )
             ?.remove();
 
           // And if there are no items in the table, remove the thead
-          if (document.querySelector("tbody")?.children.length == 0) {
-            document.querySelector("thead")?.remove();
+          if (document.querySelector("#VolumeValues tbody")?.children.length == 0) {
+            Array.from(document.querySelectorAll("#progOutput h2")).filter(e => e.innerHTML == "Volume Values")[0].remove();
+            document.querySelector("#VolumeValues")?.remove();
           }
         }
       }
@@ -70,12 +138,29 @@ axios
 document
   .getElementById("clearAllButton")
   ?.addEventListener("click", (event: Event) => {
-    removeAllChildNodes(document.querySelector("#progOutput table tbody"));
-    document.querySelector("h5")?.remove();
-    document.querySelector("thead")?.remove();
+    removeAllChildNodes(document.querySelector("#progOutput"));
     setGreenButtonsClear(
-      Array.from(document.querySelectorAll("#wrapper button"))
+      Array.from(document.querySelectorAll("#cryptoButtonWrapper button"))
     );
+    setGreenButtonsClear(
+      Array.from(document.querySelectorAll("#volumeButtonWrapper button"))
+    );
+  });
+
+// listener to show/hide each group of options
+document
+  .getElementById("pills-tab")
+  ?.addEventListener("click", (event: Event) => {
+    const { target } = event;
+
+    // if we're on the button, not somewhere else in the div
+    if ((target as HTMLButtonElement).id == "pills-crypto-tab") {
+      document.getElementById("cryptoButtonWrapper")!.style.display = "flex";
+      document.getElementById("volumeButtonWrapper")!.style.display = "none";
+    } else if ((target as HTMLButtonElement).id == "pills-volume-tab") {
+      document.getElementById("cryptoButtonWrapper")!.style.display = "none";
+      document.getElementById("volumeButtonWrapper")!.style.display = "flex";
+    }
   });
 
 function removeAllChildNodes(parent) {
@@ -92,60 +177,109 @@ function setGreenButtonsClear(buttonArray: HTMLElement[]) {
   });
 }
 
-function createTableElement(coinInfo: Coin) {
+function createTableElement(coinInfo: any, which: string) {
   // only the code to create the images are shown below
   // you should be able to figure out the missing code to
   // insert the image into a table cell
 
-  const cryptoName: HTMLElement = document.createElement("span");
-  const cryptoNameText: Text = document.createTextNode(coinInfo.name);
-  cryptoName.appendChild(cryptoNameText);
+  if (which == "crypto") {
+    let table = document.getElementById("CryptoValues");
+    tableBody = document.querySelector("#CryptoValues tbody");
+    const cryptoName: HTMLElement = document.createElement("span");
+    const cryptoNameText: Text = document.createTextNode(coinInfo.name);
+    cryptoName.appendChild(cryptoNameText);
 
-  const cryptoOpen: HTMLElement = document.createElement("span");
-  const cryptoOpenText: Text = document.createTextNode("$" + coinInfo.open);
-  cryptoOpen.appendChild(cryptoOpenText);
+    const cryptoOpen: HTMLElement = document.createElement("span");
+    const cryptoOpenText: Text = document.createTextNode("$" + coinInfo.open);
+    cryptoOpen.appendChild(cryptoOpenText);
 
-  const cryptoHigh: HTMLElement = document.createElement("span");
-  const cryptoHighText: Text = document.createTextNode("$" + coinInfo.high);
-  cryptoHigh.appendChild(cryptoHighText);
+    const cryptoHigh: HTMLElement = document.createElement("span");
+    const cryptoHighText: Text = document.createTextNode("$" + coinInfo.high);
+    cryptoHigh.appendChild(cryptoHighText);
 
-  const cryptoLow: HTMLElement = document.createElement("span");
-  const cryptoLowText: Text = document.createTextNode("$" + coinInfo.low);
-  cryptoLow.appendChild(cryptoLowText);
+    const cryptoLow: HTMLElement = document.createElement("span");
+    const cryptoLowText: Text = document.createTextNode("$" + coinInfo.low);
+    cryptoLow.appendChild(cryptoLowText);
 
-  const cryptoClose: HTMLElement = document.createElement("span");
-  const cryptoCloseText: Text = document.createTextNode("$" + coinInfo.close);
-  cryptoClose.appendChild(cryptoCloseText);
+    const cryptoClose: HTMLElement = document.createElement("span");
+    const cryptoCloseText: Text = document.createTextNode("$" + coinInfo.close);
+    cryptoClose.appendChild(cryptoCloseText);
 
-  let tr: HTMLElement = document.createElement("tr");
-  let td: HTMLElement = document.createElement("td");
+    let tr: HTMLElement = document.createElement("tr");
+    let td: HTMLElement = document.createElement("td");
 
-  td.appendChild(cryptoName);
-  tr.appendChild(td);
+    td.appendChild(cryptoName);
+    tr.appendChild(td);
 
-  td = document.createElement("td");
-  td.appendChild(cryptoOpen);
-  tr.appendChild(td);
+    td = document.createElement("td");
+    td.appendChild(cryptoOpen);
+    tr.appendChild(td);
 
-  td = document.createElement("td");
-  td.appendChild(cryptoHigh);
-  tr.appendChild(td);
+    td = document.createElement("td");
+    td.appendChild(cryptoHigh);
+    tr.appendChild(td);
 
-  td = document.createElement("td");
-  td.appendChild(cryptoLow);
-  tr.appendChild(td);
+    td = document.createElement("td");
+    td.appendChild(cryptoLow);
+    tr.appendChild(td);
 
-  td = document.createElement("td");
-  td.appendChild(cryptoClose);
-  tr.appendChild(td);
+    td = document.createElement("td");
+    td.appendChild(cryptoClose);
+    tr.appendChild(td);
 
-  tr.setAttribute("id", coinInfo.name.toLowerCase() + "TableElement");
+    tr.setAttribute("id", coinInfo.name.toLowerCase() + "TableElement");
 
-  tableBody?.appendChild(tr);
+    tableBody?.appendChild(tr);
+    if (tableBody != null) {
+      table?.appendChild(tableBody);
+    }
+  } else {
+    let table = document.getElementById("VolumeValues");
+    tableBody = document.querySelector("#VolumeValues tbody");
+    const cryptoName: HTMLElement = document.createElement("span");
+    const cryptoNameText: Text = document.createTextNode(coinInfo.name);
+    cryptoName.appendChild(cryptoNameText);
+
+    const cryptoOpen: HTMLElement = document.createElement("span");
+    const cryptoOpenText: Text = document.createTextNode(coinInfo.quantity);
+    cryptoOpen.appendChild(cryptoOpenText);
+
+    const volumePrice: HTMLElement = document.createElement("span");
+    const volumePriceText: Text = document.createTextNode("$" + coinInfo.price);
+    volumePrice.appendChild(volumePriceText);
+
+    let tr: HTMLElement = document.createElement("tr");
+    let td: HTMLElement = document.createElement("td");
+
+    td.appendChild(cryptoName);
+    tr.appendChild(td);
+
+    td = document.createElement("td");
+    td.appendChild(cryptoOpen);
+    tr.appendChild(td);
+
+    td = document.createElement("td");
+    td.appendChild(volumePrice);
+    tr.appendChild(td);
+
+    tr.setAttribute("id", coinInfo.name.toLowerCase() + "TableElement");
+
+    tableBody?.appendChild(tr);
+    if (tableBody != null) {
+      table?.appendChild(tableBody);
+    }
+  }
 }
 
-function createTableHead() {
-  let table = document.querySelector("table");
+function createTableHead(title: string) {
+  let outputTitle = document.createElement("h2");
+  let outputTitleText = document.createTextNode(title);
+  outputTitle.appendChild(outputTitleText);
+  document.getElementById("progOutput")?.appendChild(outputTitle);
+
+  let table = document.createElement("table");
+  table.setAttribute("id", `${title.replace(/\s/g, "")}`);
+  tableBody = document.createElement("tbody");
   let thead = document.createElement("thead");
   let tr = document.createElement("tr");
   let th = document.createElement("th");
@@ -154,67 +288,82 @@ function createTableHead() {
   th.appendChild(thText);
   tr.appendChild(th);
 
-  th = document.createElement("th");
-  thText = document.createTextNode("Open");
-  th.appendChild(thText);
-  tr.appendChild(th);
+  if (title == "Crypto Values") {
+    th = document.createElement("th");
+    thText = document.createTextNode("Open");
+    th.appendChild(thText);
+    tr.appendChild(th);
 
-  th = document.createElement("th");
-  thText = document.createTextNode("High");
-  th.appendChild(thText);
-  tr.appendChild(th);
+    th = document.createElement("th");
+    thText = document.createTextNode("High");
+    th.appendChild(thText);
+    tr.appendChild(th);
 
-  th = document.createElement("th");
-  thText = document.createTextNode("Low");
-  th.appendChild(thText);
-  tr.appendChild(th);
+    th = document.createElement("th");
+    thText = document.createTextNode("Low");
+    th.appendChild(thText);
+    tr.appendChild(th);
 
-  th = document.createElement("th");
-  thText = document.createTextNode("Close");
-  th.appendChild(thText);
-  tr.appendChild(th);
+    th = document.createElement("th");
+    thText = document.createTextNode("Close");
+    th.appendChild(thText);
+    tr.appendChild(th);
+  } else {
+    th = document.createElement("th");
+    thText = document.createTextNode("Quantity");
+    th.appendChild(thText);
+    tr.appendChild(th);
+
+    th = document.createElement("th");
+    thText = document.createTextNode("Price");
+    th.appendChild(thText);
+    tr.appendChild(th);
+  }
 
   thead.appendChild(tr);
   table?.appendChild(thead);
+  table?.appendChild(tableBody);
+  document.getElementById("progOutput")?.appendChild(table);
 }
 
-function createButtons(symbol: string[]) {
+function createButtons(
+  symbol: string[],
+  buttonWrapper: HTMLElement,
+  which: string
+) {
   let symbolButton: HTMLButtonElement | null;
   let userInput: HTMLElement | null = document.querySelector("#userInput");
-  let buttonContainer: HTMLElement | null = document.createElement("div");
-  let buttonsOptionsContainer: HTMLElement | null = document.createElement(
-    "div"
-  );
 
-  buttonContainer.setAttribute("id", "wrapper");
-  buttonContainer.setAttribute("class", "btn-group-vertical btn-group-toggle");
-  buttonContainer.setAttribute("role", "group");
-  buttonContainer.setAttribute(
-    "aria-label",
-    "Basic checkbox toggle button group"
-  );
+  if (which == "crypto") {
+    buttonWrapper.setAttribute(
+      "class",
+      "btn-group-vertical tab-pane fade show active"
+    );
+  } else {
+    buttonWrapper.setAttribute("class", "btn-group-vertical tab-pane fade");
+  }
+  buttonWrapper.setAttribute("role", "tabpanel");
+  buttonWrapper.setAttribute("aria-labelledby", "pills-" + which + "-tab");
 
-  buttonsOptionsContainer.setAttribute("id", "buttonsOptions");
-  buttonsOptionsContainer.setAttribute("class", "collapse hide-me");
-  buttonsOptionsContainer.appendChild(buttonContainer);
-  userInput?.appendChild(buttonsOptionsContainer);
+  tabContentWrapper.appendChild(buttonWrapper);
+  userInput?.appendChild(tabContentWrapper);
 
   symbol.forEach((coin: string) => {
     if (coin.match(/(usd)/g)) {
       symbolButton = document.createElement("button");
-      symbolButton.setAttribute("id", coin);
-      symbolButton.setAttribute("class", "btn btn-outline-success");
+      symbolButton.setAttribute("id", `${coin}-${which}`);
+      symbolButton.setAttribute("class", "btn btn-outline-success " + which);
       symbolButton.setAttribute("type", "button");
       symbolButton.setAttribute("data-toggle", "button");
       symbolButton.setAttribute("autocomplete", "off");
       symbolButton.textContent = coin;
 
-      buttonContainer?.appendChild(symbolButton);
+      buttonWrapper?.appendChild(symbolButton);
     }
   });
 }
 
-function createErrorMessage(coinDetails: Coin[]) {
+function createErrorMessage(coinDetails: any[], which: string) {
   document?.querySelector("h5")?.remove();
   let header = document?.getElementById("pageTitle");
   let errorMessage = document.createElement("h5");
@@ -223,16 +372,15 @@ function createErrorMessage(coinDetails: Coin[]) {
   );
   errorMessage.appendChild(errorMessageText);
   header?.appendChild(errorMessage);
-
+  let name = coinDetails[0].name.toLowerCase();
+  if (which == "volume") {
+    name = `${name}usd`;
+  }
   document
-    .getElementById(coinDetails[0].name.toLowerCase())
+    .getElementById(`${name}-${which}`)
     ?.setAttribute("class", "btn btn-danger active");
-  document
-    .getElementById(coinDetails[0].name.toLowerCase())
-    ?.removeAttribute("data-toggle");
-  document
-    .getElementById(coinDetails[0].name.toLowerCase())
-    ?.setAttribute("disabled", "");
+  document.getElementById(`${name}-${which}`)?.setAttribute("disabled", "");
+  document.getElementById(`${name}-${which}`)?.removeAttribute("data-toggle");
 
   setTimeout(() => {
     errorMessage.remove();
@@ -240,49 +388,112 @@ function createErrorMessage(coinDetails: Coin[]) {
 }
 
 function generateTableElement(target: EventTarget | null) {
-  const baseURL: string = "https://api.sandbox.gemini.com/v2/ticker/";
-  let cryptoURL: string = baseURL + (target as HTMLButtonElement).id;
-  axios
-    .get(cryptoURL)
-    .then((r: AxiosResponse) => {
-      let dataArr: any[] = [];
-      dataArr.push(r.data);
-      return dataArr;
-    })
-    .then((coins: any[]) => {
-      const coinsArr = coins.map(
-        (c: any): Coin => {
-          return {
-            name: c.symbol,
-            open: c.open,
-            high: c.high,
-            low: c.low,
-            close: c.close,
-          };
-        }
-      );
-      return coinsArr;
-    })
-    .then((coinDetails: Coin[]) => {
-      if (coinDetails[0].close != "0") {
-        // if there's information for this coin
-        if (
-          // if there's nothing in the table at all, make a thead
-          tableBody?.children[0] == undefined &&
-          document.querySelector("thead tr")?.children[0] == undefined
-        ) {
-          createTableHead();
-        }
+  let baseURL: string;
+  let cryptoURL: string;
 
-        coinDetails.forEach((coin: Coin) => {
-          createTableElement(coin);
-        });
-        document
-          .getElementById(coinDetails[0].name.toLowerCase())
-          ?.setAttribute("class", "btn btn-outline-success active");
-      } else {
-        // create a new error message
-        createErrorMessage(coinDetails);
-      }
-    });
+  if ((target as HTMLButtonElement).classList.contains("crypto")) {
+    baseURL = "https://api.sandbox.gemini.com/v2/ticker/";
+    cryptoURL = baseURL + (target as HTMLButtonElement).id.replace(/-.*$/g, "");
+    axios
+      .get(cryptoURL)
+      .then((r: AxiosResponse) => {
+        let dataArr: any[] = [];
+        dataArr.push(r.data);
+        return dataArr;
+      })
+      .then((coins: any[]) => {
+        const coinsArr = coins.map(
+          (c: any): Coin => {
+            return {
+              name: c.symbol,
+              open: c.open,
+              high: c.high,
+              low: c.low,
+              close: c.close,
+            };
+          }
+        );
+        return coinsArr;
+      })
+      .then((coinDetails: Coin[]) => {
+        if (coinDetails[0].close != "0") {
+          // if there's information for this coin
+          if (
+            // if there's nothing in the table at all, make a thead
+            (document.getElementById("progOutput")?.children[0] == undefined &&
+              document.querySelector("thead tr")?.children[0] == undefined) ||
+            !Array.from(document.querySelectorAll("#progOutput h2")).some(
+              (e) => e.innerHTML == "Crypto Values"
+            )
+          ) {
+            createTableHead("Crypto Values");
+          }
+
+          coinDetails.forEach((coin: Coin) => {
+            createTableElement(coin, "crypto");
+          });
+          document
+            .getElementById(coinDetails[0].name.toLowerCase())
+            ?.setAttribute("class", "btn btn-outline-success active");
+        } else {
+          // create a new error message
+          createErrorMessage(coinDetails, "crypto");
+        }
+      });
+  } else {
+    baseURL = "https://api.sandbox.gemini.com/v1/pubticker/";
+    cryptoURL = baseURL + (target as HTMLButtonElement).id.replace(/-.*$/g, "");
+    axios
+      .get(cryptoURL)
+      .then((r: AxiosResponse) => {
+        let dataArr: any[] = [];
+        dataArr.push(r.data);
+        return dataArr;
+      })
+      .then((volumes: any[]) => {
+        const volumesArr = volumes.map(
+          (c: any): Volume => {
+            let volumeName = (target as HTMLButtonElement)
+              .id!.replace(/(usd)+-.*$/g, "")
+              .toUpperCase();
+            return {
+              name: volumeName,
+              quantity: parseFloat(c.volume[volumeName]).toLocaleString(),
+              price: parseFloat(c.volume.USD).toLocaleString(),
+            };
+          }
+        );
+        return volumesArr;
+      })
+      .then((coinDetails: Volume[]) => {
+        if (coinDetails[0].price != "0") {
+          // if there's information for this coin
+          console.log(
+            !Array.from(document.querySelectorAll("#progOutput h2")).some(
+              (e) => e.innerHTML == "Volume Values"
+            )
+          );
+          if (
+            // if there's nothing in the table at all, make a thead
+            (document.getElementById("progOutput")?.children[0] == undefined &&
+              document.querySelector("thead tr")?.children[0] == undefined) ||
+            !Array.from(document.querySelectorAll("#progOutput h2")).some(
+              (e) => e.innerHTML == "Volume Values"
+            )
+          ) {
+            createTableHead("Volume Values");
+          }
+
+          coinDetails.forEach((coin: Volume) => {
+            createTableElement(coin, "volume");
+          });
+          document
+            .getElementById(coinDetails[0].quantity.toLowerCase())
+            ?.setAttribute("class", "btn btn-outline-success active");
+        } else {
+          // create a new error message
+          createErrorMessage(coinDetails, "volume");
+        }
+      });
+  }
 }

@@ -23,26 +23,20 @@
 
     <div id="topContainer">
       <div id="pageTitle">
-        <h2>Crypto Values</h2>
+        <h1>Cryptocurrency Current Values</h1>
       </div>
       <section id="userInput">
-        <h3>Crypto Info</h3>
         <button type="button" class="btn btn-primary" id="clearAllButton">Clear All</button>
-        <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
-          <label class="btn btn-secondary active">
-            <input type="radio" name="options" id="cryptoButton" autocomplete="off"> Crypto Values
-          </label>
-          <label class="btn btn-secondary">
-            <input type="radio" name="options" id="volumeButton" autocomplete="off"> Volume
-          </label>
-        </div>
+        <ul class="nav nav-pills justify-content-around mt-3" id="pills-tab" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" id="pills-crypto-tab" data-toggle="pill" href="#cryptoButtonWrapper" role="tab" aria-controls="pills-home" aria-selected="true">Crypto Values</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="pills-volume-tab" data-toggle="pill" href="#volumeButtonWrapper" role="tab" aria-controls="pills-profile" aria-selected="false">Volume</a>
+          </li>
+        </ul>
       </section>
       <section id="progOutput">
-        <table>
-          <tbody>
-            <!-- this part will be filled from code -->
-          </tbody>
-        </table>
       </section>
     </div>
   </body>

@@ -445,32 +445,67 @@ id) /*: string*/
 var _axios = require("axios");
 var _parcelHelpers = require("@parcel/transformer-js/lib/esmodule-helpers.js");
 var _axiosDefault = _parcelHelpers.interopDefault(_axios);
-let tableBody = document.querySelector("#progOutput table > tbody");
+let tableBody;
+let tabContentWrapper = document.createElement("div");
+tabContentWrapper.setAttribute("id", "tabContentWrapper");
+tabContentWrapper.setAttribute("class", "tab-content");
+/*
+Get possible crypto currencies available, and turn them into options
+*/
 const cryptoSymbolURL = "https://api.sandbox.gemini.com/v1/symbols";
 _axiosDefault.default.get(cryptoSymbolURL).then(r => {
   let dataArr = [];
   dataArr.push(r.data);
   return dataArr[0];
 }).then(symbol => {
-  createButtons(symbol);
+  let buttonWrapper = document.createElement("div");
+  buttonWrapper.setAttribute("id", "cryptoButtonWrapper");
+  createButtons(symbol, buttonWrapper, "crypto");
+  buttonWrapper = document.createElement("div");
+  buttonWrapper.setAttribute("id", "volumeButtonWrapper");
+  buttonWrapper.style.display = "none";
+  createButtons(symbol, buttonWrapper, "volume");
   return symbol;
 }).then(symbol => {
-  const wrapper = document.getElementById("wrapper");
-  wrapper?.addEventListener?.("click", event => {
+  const cryptoButtonWrapper = document.getElementById("cryptoButtonWrapper");
+  cryptoButtonWrapper?.addEventListener?.("click", event => {
     const {target} = event;
     // if we're on the button, not somewhere else in the div
     if (target.id != undefined) {
-      let tableElement = document.querySelector("tbody tr#" + target.id + "TableElement");
+      let tableElement = document.querySelector(`#CryptoValues tbody tr#${target.id.replace(/-crypto/g, "")}TableElement`);
+      // if the element doesn't exist yet
+      if (tableElement == null && !target.classList.contains("btn-outline-danger")) {
+        console.log("generatetableel");
+        generateTableElement(target);
+      } else {
+        // if the element DOES exist
+        // remove the element
+        document.querySelector(`#CryptoValues tbody tr#${target.id.replace(/-crypto/g, "")}TableElement`)?.remove?.();
+        // And if there are no items in the table, remove the thead
+        if (document.querySelector("#CryptoValues tbody")?.children?.length == 0) {
+          Array.from(document.querySelectorAll("#progOutput h2")).filter(e => e.innerHTML == "Crypto Values")[0].remove();
+          document.querySelector("#CryptoValues")?.remove?.();
+        }
+      }
+    }
+  });
+  const volumeButtonWrapper = document.getElementById("volumeButtonWrapper");
+  volumeButtonWrapper?.addEventListener?.("click", event => {
+    const {target} = event;
+    // if we're on the button, not somewhere else in the div
+    if (target.id != undefined) {
+      let tableElement = document.querySelector(`#VolumeValues tbody tr#${target.id.replace(/usd-volume/g, "")}TableElement`);
       // if the element doesn't exist yet
       if (tableElement == null && !target.classList.contains("btn-outline-danger")) {
         generateTableElement(target);
       } else {
         // if the element DOES exist
         // remove the element
-        document.querySelector("tbody tr#" + target.id + "TableElement")?.remove?.();
+        document.querySelector(`#VolumeValues tbody tr#${target.id.replace(/usd-volume/g, "")}TableElement`)?.remove?.();
         // And if there are no items in the table, remove the thead
-        if (document.querySelector("tbody")?.children?.length == 0) {
-          document.querySelector("thead")?.remove?.();
+        if (document.querySelector("#VolumeValues tbody")?.children?.length == 0) {
+          Array.from(document.querySelectorAll("#progOutput h2")).filter(e => e.innerHTML == "Volume Values")[0].remove();
+          document.querySelector("#VolumeValues")?.remove?.();
         }
       }
     }
@@ -478,10 +513,21 @@ _axiosDefault.default.get(cryptoSymbolURL).then(r => {
 });
 // listener for clearAllButton
 document.getElementById("clearAllButton")?.addEventListener?.("click", event => {
-  removeAllChildNodes(document.querySelector("#progOutput table tbody"));
-  document.querySelector("h5")?.remove?.();
-  document.querySelector("thead")?.remove?.();
-  setGreenButtonsClear(Array.from(document.querySelectorAll("#wrapper button")));
+  removeAllChildNodes(document.querySelector("#progOutput"));
+  setGreenButtonsClear(Array.from(document.querySelectorAll("#cryptoButtonWrapper button")));
+  setGreenButtonsClear(Array.from(document.querySelectorAll("#volumeButtonWrapper button")));
+});
+// listener to show/hide each group of options
+document.getElementById("pills-tab")?.addEventListener?.("click", event => {
+  const {target} = event;
+  // if we're on the button, not somewhere else in the div
+  if (target.id == "pills-crypto-tab") {
+    document.getElementById("cryptoButtonWrapper").style.display = "flex";
+    document.getElementById("volumeButtonWrapper").style.display = "none";
+  } else if (target.id == "pills-volume-tab") {
+    document.getElementById("cryptoButtonWrapper").style.display = "none";
+    document.getElementById("volumeButtonWrapper").style.display = "flex";
+  }
 });
 function removeAllChildNodes(parent) {
   while (parent.firstChild) {
@@ -495,145 +541,239 @@ function setGreenButtonsClear(buttonArray) {
     }
   });
 }
-function createTableElement(coinInfo) {
+function createTableElement(coinInfo, which) {
   // only the code to create the images are shown below
   // you should be able to figure out the missing code to
   // insert the image into a table cell
-  const cryptoName = document.createElement("span");
-  const cryptoNameText = document.createTextNode(coinInfo.name);
-  cryptoName.appendChild(cryptoNameText);
-  const cryptoOpen = document.createElement("span");
-  const cryptoOpenText = document.createTextNode("$" + coinInfo.open);
-  cryptoOpen.appendChild(cryptoOpenText);
-  const cryptoHigh = document.createElement("span");
-  const cryptoHighText = document.createTextNode("$" + coinInfo.high);
-  cryptoHigh.appendChild(cryptoHighText);
-  const cryptoLow = document.createElement("span");
-  const cryptoLowText = document.createTextNode("$" + coinInfo.low);
-  cryptoLow.appendChild(cryptoLowText);
-  const cryptoClose = document.createElement("span");
-  const cryptoCloseText = document.createTextNode("$" + coinInfo.close);
-  cryptoClose.appendChild(cryptoCloseText);
-  let tr = document.createElement("tr");
-  let td = document.createElement("td");
-  td.appendChild(cryptoName);
-  tr.appendChild(td);
-  td = document.createElement("td");
-  td.appendChild(cryptoOpen);
-  tr.appendChild(td);
-  td = document.createElement("td");
-  td.appendChild(cryptoHigh);
-  tr.appendChild(td);
-  td = document.createElement("td");
-  td.appendChild(cryptoLow);
-  tr.appendChild(td);
-  td = document.createElement("td");
-  td.appendChild(cryptoClose);
-  tr.appendChild(td);
-  tr.setAttribute("id", coinInfo.name.toLowerCase() + "TableElement");
-  tableBody?.appendChild?.(tr);
+  if (which == "crypto") {
+    let table = document.getElementById("CryptoValues");
+    tableBody = document.querySelector("#CryptoValues tbody");
+    const cryptoName = document.createElement("span");
+    const cryptoNameText = document.createTextNode(coinInfo.name);
+    cryptoName.appendChild(cryptoNameText);
+    const cryptoOpen = document.createElement("span");
+    const cryptoOpenText = document.createTextNode("$" + coinInfo.open);
+    cryptoOpen.appendChild(cryptoOpenText);
+    const cryptoHigh = document.createElement("span");
+    const cryptoHighText = document.createTextNode("$" + coinInfo.high);
+    cryptoHigh.appendChild(cryptoHighText);
+    const cryptoLow = document.createElement("span");
+    const cryptoLowText = document.createTextNode("$" + coinInfo.low);
+    cryptoLow.appendChild(cryptoLowText);
+    const cryptoClose = document.createElement("span");
+    const cryptoCloseText = document.createTextNode("$" + coinInfo.close);
+    cryptoClose.appendChild(cryptoCloseText);
+    let tr = document.createElement("tr");
+    let td = document.createElement("td");
+    td.appendChild(cryptoName);
+    tr.appendChild(td);
+    td = document.createElement("td");
+    td.appendChild(cryptoOpen);
+    tr.appendChild(td);
+    td = document.createElement("td");
+    td.appendChild(cryptoHigh);
+    tr.appendChild(td);
+    td = document.createElement("td");
+    td.appendChild(cryptoLow);
+    tr.appendChild(td);
+    td = document.createElement("td");
+    td.appendChild(cryptoClose);
+    tr.appendChild(td);
+    tr.setAttribute("id", coinInfo.name.toLowerCase() + "TableElement");
+    tableBody?.appendChild?.(tr);
+    if (tableBody != null) {
+      table?.appendChild?.(tableBody);
+    }
+  } else {
+    let table = document.getElementById("VolumeValues");
+    tableBody = document.querySelector("#VolumeValues tbody");
+    const cryptoName = document.createElement("span");
+    const cryptoNameText = document.createTextNode(coinInfo.name);
+    cryptoName.appendChild(cryptoNameText);
+    const cryptoOpen = document.createElement("span");
+    const cryptoOpenText = document.createTextNode(coinInfo.quantity);
+    cryptoOpen.appendChild(cryptoOpenText);
+    const volumePrice = document.createElement("span");
+    const volumePriceText = document.createTextNode("$" + coinInfo.price);
+    volumePrice.appendChild(volumePriceText);
+    let tr = document.createElement("tr");
+    let td = document.createElement("td");
+    td.appendChild(cryptoName);
+    tr.appendChild(td);
+    td = document.createElement("td");
+    td.appendChild(cryptoOpen);
+    tr.appendChild(td);
+    td = document.createElement("td");
+    td.appendChild(volumePrice);
+    tr.appendChild(td);
+    tr.setAttribute("id", coinInfo.name.toLowerCase() + "TableElement");
+    tableBody?.appendChild?.(tr);
+    if (tableBody != null) {
+      table?.appendChild?.(tableBody);
+    }
+  }
 }
-function createTableHead() {
-  let table = document.querySelector("table");
+function createTableHead(title) {
+  let outputTitle = document.createElement("h2");
+  let outputTitleText = document.createTextNode(title);
+  outputTitle.appendChild(outputTitleText);
+  document.getElementById("progOutput")?.appendChild?.(outputTitle);
+  let table = document.createElement("table");
+  table.setAttribute("id", `${title.replace(/\s/g, "")}`);
+  tableBody = document.createElement("tbody");
   let thead = document.createElement("thead");
   let tr = document.createElement("tr");
   let th = document.createElement("th");
   let thText = document.createTextNode("Symbol");
   th.appendChild(thText);
   tr.appendChild(th);
-  th = document.createElement("th");
-  thText = document.createTextNode("Open");
-  th.appendChild(thText);
-  tr.appendChild(th);
-  th = document.createElement("th");
-  thText = document.createTextNode("High");
-  th.appendChild(thText);
-  tr.appendChild(th);
-  th = document.createElement("th");
-  thText = document.createTextNode("Low");
-  th.appendChild(thText);
-  tr.appendChild(th);
-  th = document.createElement("th");
-  thText = document.createTextNode("Close");
-  th.appendChild(thText);
-  tr.appendChild(th);
+  if (title == "Crypto Values") {
+    th = document.createElement("th");
+    thText = document.createTextNode("Open");
+    th.appendChild(thText);
+    tr.appendChild(th);
+    th = document.createElement("th");
+    thText = document.createTextNode("High");
+    th.appendChild(thText);
+    tr.appendChild(th);
+    th = document.createElement("th");
+    thText = document.createTextNode("Low");
+    th.appendChild(thText);
+    tr.appendChild(th);
+    th = document.createElement("th");
+    thText = document.createTextNode("Close");
+    th.appendChild(thText);
+    tr.appendChild(th);
+  } else {
+    th = document.createElement("th");
+    thText = document.createTextNode("Quantity");
+    th.appendChild(thText);
+    tr.appendChild(th);
+    th = document.createElement("th");
+    thText = document.createTextNode("Price");
+    th.appendChild(thText);
+    tr.appendChild(th);
+  }
   thead.appendChild(tr);
   table?.appendChild?.(thead);
+  table?.appendChild?.(tableBody);
+  document.getElementById("progOutput")?.appendChild?.(table);
 }
-function createButtons(symbol) {
+function createButtons(symbol, buttonWrapper, which) {
   let symbolButton;
   let userInput = document.querySelector("#userInput");
-  let buttonContainer = document.createElement("div");
-  let buttonsOptionsContainer = document.createElement("div");
-  buttonContainer.setAttribute("id", "wrapper");
-  buttonContainer.setAttribute("class", "btn-group-vertical btn-group-toggle");
-  buttonContainer.setAttribute("role", "group");
-  buttonContainer.setAttribute("aria-label", "Basic checkbox toggle button group");
-  buttonsOptionsContainer.setAttribute("id", "buttonsOptions");
-  buttonsOptionsContainer.setAttribute("class", "collapse hide-me");
-  buttonsOptionsContainer.appendChild(buttonContainer);
-  userInput?.appendChild?.(buttonsOptionsContainer);
+  if (which == "crypto") {
+    buttonWrapper.setAttribute("class", "btn-group-vertical tab-pane fade show active");
+  } else {
+    buttonWrapper.setAttribute("class", "btn-group-vertical tab-pane fade");
+  }
+  buttonWrapper.setAttribute("role", "tabpanel");
+  buttonWrapper.setAttribute("aria-labelledby", "pills-" + which + "-tab");
+  tabContentWrapper.appendChild(buttonWrapper);
+  userInput?.appendChild?.(tabContentWrapper);
   symbol.forEach(coin => {
     if (coin.match(/(usd)/g)) {
       symbolButton = document.createElement("button");
-      symbolButton.setAttribute("id", coin);
-      symbolButton.setAttribute("class", "btn btn-outline-success");
+      symbolButton.setAttribute("id", `${coin}-${which}`);
+      symbolButton.setAttribute("class", "btn btn-outline-success " + which);
       symbolButton.setAttribute("type", "button");
       symbolButton.setAttribute("data-toggle", "button");
       symbolButton.setAttribute("autocomplete", "off");
       symbolButton.textContent = coin;
-      buttonContainer?.appendChild?.(symbolButton);
+      buttonWrapper?.appendChild?.(symbolButton);
     }
   });
 }
-function createErrorMessage(coinDetails) {
+function createErrorMessage(coinDetails, which) {
   document?.querySelector?.("h5")?.remove?.();
   let header = document?.getElementById?.("pageTitle");
   let errorMessage = document.createElement("h5");
   let errorMessageText = document.createTextNode("There is no information for " + coinDetails[0].name + " at this time.");
   errorMessage.appendChild(errorMessageText);
   header?.appendChild?.(errorMessage);
-  document.getElementById(coinDetails[0].name.toLowerCase())?.setAttribute?.("class", "btn btn-danger active");
-  document.getElementById(coinDetails[0].name.toLowerCase())?.removeAttribute?.("data-toggle");
-  document.getElementById(coinDetails[0].name.toLowerCase())?.setAttribute?.("disabled", "");
+  let name = coinDetails[0].name.toLowerCase();
+  if (which == "volume") {
+    name = `${name}usd`;
+  }
+  document.getElementById(`${name}-${which}`)?.setAttribute?.("class", "btn btn-danger active");
+  document.getElementById(`${name}-${which}`)?.setAttribute?.("disabled", "");
+  document.getElementById(`${name}-${which}`)?.removeAttribute?.("data-toggle");
   setTimeout(() => {
     errorMessage.remove();
   }, 3000);
 }
 function generateTableElement(target) {
-  const baseURL = "https://api.sandbox.gemini.com/v2/ticker/";
-  let cryptoURL = baseURL + target.id;
-  _axiosDefault.default.get(cryptoURL).then(r => {
-    let dataArr = [];
-    dataArr.push(r.data);
-    return dataArr;
-  }).then(coins => {
-    const coinsArr = coins.map(c => {
-      return {
-        name: c.symbol,
-        open: c.open,
-        high: c.high,
-        low: c.low,
-        close: c.close
-      };
-    });
-    return coinsArr;
-  }).then(coinDetails => {
-    if (coinDetails[0].close != "0") {
-      // if there's information for this coin
-      if (// if there's nothing in the table at all, make a thead
-      tableBody?.children?.[0] == undefined && document.querySelector("thead tr")?.children?.[0] == undefined) {
-        createTableHead();
-      }
-      coinDetails.forEach(coin => {
-        createTableElement(coin);
+  let baseURL;
+  let cryptoURL;
+  if (target.classList.contains("crypto")) {
+    baseURL = "https://api.sandbox.gemini.com/v2/ticker/";
+    cryptoURL = baseURL + target.id.replace(/-.*$/g, "");
+    _axiosDefault.default.get(cryptoURL).then(r => {
+      let dataArr = [];
+      dataArr.push(r.data);
+      return dataArr;
+    }).then(coins => {
+      const coinsArr = coins.map(c => {
+        return {
+          name: c.symbol,
+          open: c.open,
+          high: c.high,
+          low: c.low,
+          close: c.close
+        };
       });
-      document.getElementById(coinDetails[0].name.toLowerCase())?.setAttribute?.("class", "btn btn-outline-success active");
-    } else {
-      // create a new error message
-      createErrorMessage(coinDetails);
-    }
-  });
+      return coinsArr;
+    }).then(coinDetails => {
+      if (coinDetails[0].close != "0") {
+        // if there's information for this coin
+        if (// if there's nothing in the table at all, make a thead
+        document.getElementById("progOutput")?.children?.[0] == undefined && document.querySelector("thead tr")?.children?.[0] == undefined || !Array.from(document.querySelectorAll("#progOutput h2")).some(e => e.innerHTML == "Crypto Values")) {
+          createTableHead("Crypto Values");
+        }
+        coinDetails.forEach(coin => {
+          createTableElement(coin, "crypto");
+        });
+        document.getElementById(coinDetails[0].name.toLowerCase())?.setAttribute?.("class", "btn btn-outline-success active");
+      } else {
+        // create a new error message
+        createErrorMessage(coinDetails, "crypto");
+      }
+    });
+  } else {
+    baseURL = "https://api.sandbox.gemini.com/v1/pubticker/";
+    cryptoURL = baseURL + target.id.replace(/-.*$/g, "");
+    _axiosDefault.default.get(cryptoURL).then(r => {
+      let dataArr = [];
+      dataArr.push(r.data);
+      return dataArr;
+    }).then(volumes => {
+      const volumesArr = volumes.map(c => {
+        let volumeName = target.id.replace(/(usd)+-.*$/g, "").toUpperCase();
+        return {
+          name: volumeName,
+          quantity: parseFloat(c.volume[volumeName]).toLocaleString(),
+          price: parseFloat(c.volume.USD).toLocaleString()
+        };
+      });
+      return volumesArr;
+    }).then(coinDetails => {
+      if (coinDetails[0].price != "0") {
+        // if there's information for this coin
+        console.log(!Array.from(document.querySelectorAll("#progOutput h2")).some(e => e.innerHTML == "Volume Values"));
+        if (// if there's nothing in the table at all, make a thead
+        document.getElementById("progOutput")?.children?.[0] == undefined && document.querySelector("thead tr")?.children?.[0] == undefined || !Array.from(document.querySelectorAll("#progOutput h2")).some(e => e.innerHTML == "Volume Values")) {
+          createTableHead("Volume Values");
+        }
+        coinDetails.forEach(coin => {
+          createTableElement(coin, "volume");
+        });
+        document.getElementById(coinDetails[0].quantity.toLowerCase())?.setAttribute?.("class", "btn btn-outline-success active");
+      } else {
+        // create a new error message
+        createErrorMessage(coinDetails, "volume");
+      }
+    });
+  }
 }
 
 },{"axios":"7rA65","@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y"}],"7rA65":[function(require,module,exports) {

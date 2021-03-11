@@ -37,6 +37,7 @@
 table {
   border-collapse: collapse;
   border: 2px solid blue;
+  margin-bottom: 20px;
 }
 
 #topContainer {
@@ -84,4 +85,7 @@ h5 {
   display: none;
 }
 
+h1 {
+  color: rgb(45, 148, 148);
+}
 /*# sourceMappingURL=index.ba449596.css.map */
