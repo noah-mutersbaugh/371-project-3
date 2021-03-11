@@ -66,7 +66,6 @@ axios
             "btn-outline-danger"
           )
         ) {
-          console.log("generatetableel");
           generateTableElement(target);
         } else {
           // if the element DOES exist
@@ -468,11 +467,6 @@ function generateTableElement(target: EventTarget | null) {
       .then((coinDetails: Volume[]) => {
         if (coinDetails[0].price != "0") {
           // if there's information for this coin
-          console.log(
-            !Array.from(document.querySelectorAll("#progOutput h2")).some(
-              (e) => e.innerHTML == "Volume Values"
-            )
-          );
           if (
             // if there's nothing in the table at all, make a thead
             (document.getElementById("progOutput")?.children[0] == undefined &&
