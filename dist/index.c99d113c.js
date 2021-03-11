@@ -716,10 +716,10 @@ function generateTableElement(target) {
       const coinsArr = coins.map(c => {
         return {
           name: c.symbol,
-          open: c.open,
-          high: c.high,
-          low: c.low,
-          close: c.close
+          open: parseFloat(c.open).toLocaleString(),
+          high: parseFloat(c.high).toLocaleString(),
+          low: parseFloat(c.low).toLocaleString(),
+          close: parseFloat(c.close).toLocaleString()
         };
       });
       return coinsArr;
