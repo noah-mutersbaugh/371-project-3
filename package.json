@@ -2,7 +2,7 @@
   "name": "project3",
   "version": "1.0.0",
   "description": "",
-  "main": "src/main.ts",
+  "main": "src/index.html",
   "scripts": {
     "start": "tsc && node dist/main.js",
     "dev": "parcel src/index.html",
@@ -12,7 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.1",
-    "highcharts": "^9.0.1"
+    "highcharts": "^9.0.1",
+    "vercel": "^21.3.3"
   },
   "devDependencies": {
     "@types/jquery": "^3.5.5",

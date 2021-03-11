@@ -12,7 +12,7 @@
   text-align: center;
 }
 
-#progOutput td:hover {
+#progOutput tr:hover {
   background-color: teal;
 }
 
@@ -27,6 +27,10 @@
 
 #progOutput tr {
   border: 2px solid blue;
+}
+
+#progOutput tr:hover {
+  background-color: teal;
 }
 
 #progOutput tr:last-child {
