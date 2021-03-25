@@ -452,7 +452,7 @@ tabContentWrapper.setAttribute("class", "tab-content");
 /*
 Get possible crypto currencies available, and turn them into options
 */
-const cryptoSymbolURL = "https://api.sandbox.gemini.com/v1/symbols";
+const cryptoSymbolURL = "https://api.gemini.com/v1/symbols";
 _axiosDefault.default.get(cryptoSymbolURL).then(r => {
   let dataArr = [];
   dataArr.push(r.data);
@@ -475,7 +475,6 @@ _axiosDefault.default.get(cryptoSymbolURL).then(r => {
       let tableElement = document.querySelector(`#CryptoValues tbody tr#${target.id.replace(/-crypto/g, "")}TableElement`);
       // if the element doesn't exist yet
       if (tableElement == null && !target.classList.contains("btn-outline-danger")) {
-        console.log("generatetableel");
         generateTableElement(target);
       } else {
         // if the element DOES exist
@@ -706,7 +705,7 @@ function generateTableElement(target) {
   let baseURL;
   let cryptoURL;
   if (target.classList.contains("crypto")) {
-    baseURL = "https://api.sandbox.gemini.com/v2/ticker/";
+    baseURL = "https://api.gemini.com/v2/ticker/";
     cryptoURL = baseURL + target.id.replace(/-.*$/g, "");
     _axiosDefault.default.get(cryptoURL).then(r => {
       let dataArr = [];
@@ -740,7 +739,7 @@ function generateTableElement(target) {
       }
     });
   } else {
-    baseURL = "https://api.sandbox.gemini.com/v1/pubticker/";
+    baseURL = "https://api.gemini.com/v1/pubticker/";
     cryptoURL = baseURL + target.id.replace(/-.*$/g, "");
     _axiosDefault.default.get(cryptoURL).then(r => {
       let dataArr = [];
@@ -759,7 +758,6 @@ function generateTableElement(target) {
     }).then(coinDetails => {
       if (coinDetails[0].price != "0") {
         // if there's information for this coin
-        console.log(!Array.from(document.querySelectorAll("#progOutput h2")).some(e => e.innerHTML == "Volume Values"));
         if (// if there's nothing in the table at all, make a thead
         document.getElementById("progOutput")?.children?.[0] == undefined && document.querySelector("thead tr")?.children?.[0] == undefined || !Array.from(document.querySelectorAll("#progOutput h2")).some(e => e.innerHTML == "Volume Values")) {
           createTableHead("Volume Values");

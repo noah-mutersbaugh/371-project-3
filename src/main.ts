@@ -23,7 +23,7 @@ tabContentWrapper.setAttribute("class", "tab-content");
 /*
   Get possible crypto currencies available, and turn them into options
 */
-const cryptoSymbolURL = "https://api.sandbox.gemini.com/v1/symbols";
+const cryptoSymbolURL = "https://api.gemini.com/v1/symbols";
 axios
   .get(cryptoSymbolURL)
   .then((r: AxiosResponse) => {
@@ -391,7 +391,7 @@ function generateTableElement(target: EventTarget | null) {
   let cryptoURL: string;
 
   if ((target as HTMLButtonElement).classList.contains("crypto")) {
-    baseURL = "https://api.sandbox.gemini.com/v2/ticker/";
+    baseURL = "https://api.gemini.com/v2/ticker/";
     cryptoURL = baseURL + (target as HTMLButtonElement).id.replace(/-.*$/g, "");
     axios
       .get(cryptoURL)
@@ -440,7 +440,7 @@ function generateTableElement(target: EventTarget | null) {
         }
       });
   } else {
-    baseURL = "https://api.sandbox.gemini.com/v1/pubticker/";
+    baseURL = "https://api.gemini.com/v1/pubticker/";
     cryptoURL = baseURL + (target as HTMLButtonElement).id.replace(/-.*$/g, "");
     axios
       .get(cryptoURL)
